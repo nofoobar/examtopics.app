@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+{% block title %}Generate AI Exam - {{ settings.APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="slide-up max-w-2xl mx-auto">
+
+  {# Breadcrumb #}
+  <div class="mono text-xs text-gray-400 flex items-center gap-1.5 mb-5">
+    <i data-lucide="terminal" class="w-3 h-3"></i>
+    <a href="/" class="hover:text-accent transition-colors">home</a>
+    <span class="text-accent">/</span>
+    <span>generate</span>
+  </div>
+
+  {# Header #}
+  <div class="panel p-6 mb-4">
+    <div class="flex items-center gap-3 mb-1">
+      <div class="w-10 h-10 rounded-lg bg-accent-light border border-accent flex items-center justify-center flex-shrink-0">
+        <i data-lucide="sparkles" class="w-5 h-5 text-accent"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-gray-900 text-lg leading-tight">Generate AI Exam</h1>
+        <p class="mono text-[11px] text-gray-400">creates exam → tests → questions via LLM</p>
+      </div>
+    </div>
+  </div>
+
+  {# Error flash #}
+  {% if error %}
+  <div class="panel px-4 py-3 mb-4 flex items-start gap-2 border-red-300 bg-red-50">
+    <i data-lucide="alert-circle" class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5"></i>
+    <p class="text-sm text-red-700">{{ error }}</p>
+  </div>
+  {% endif %}
+
+  {# Form #}
+  <form method="POST" action="/generate" id="gen-form">
+
+    <div class="panel p-6 flex flex-col gap-5">
+
+      {# ── Exam basics ── #}
+      <div class="pb-4 border-b border-border">
+        <h2 class="mono text-[11px] text-gray-400 uppercase tracking-widest mb-4">Exam Details</h2>
+
+        <div class="flex flex-col gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Exam Name <span class="text-red-400">*</span>
+            </label>
+            <input type="text" name="exam_name" required
+                   placeholder="e.g. AWS Certified Solutions Architect - Associate"
+                   value="{{ form.exam_name or '' }}"
+                   class="w-full border border-border rounded-lg px-3 py-2 text-sm text-gray-900 bg-base focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Exam Code</label>
+              <input type="text" name="exam_code"
+                     placeholder="e.g. SAA-C03"
+                     value="{{ form.exam_code or '' }}"
+                     class="w-full border border-border rounded-lg px-3 py-2 text-sm text-gray-900 bg-base focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Vendor <span class="text-red-400">*</span>
+              </label>
+              <select name="vendor_id" required
+                      class="w-full border border-border rounded-lg px-3 py-2 text-sm text-gray-900 bg-base focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all">
+                <option value="">- select vendor -</option>
+                {% for v in vendors %}
+                <option value="{{ v.id }}" {{ 'selected' if form.vendor_id == v.id|string }}>
+                  {{ v.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# ── Generation settings ── #}
+      <div class="pb-4 border-b border-border">
+        <h2 class="mono text-[11px] text-gray-400 uppercase tracking-widest mb-4">Generation Settings</h2>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Number of Tests <span class="text-red-400">*</span>
+            </label>
+            <input type="number" name="num_tests" min="1" max="5" required
+                   value="{{ form.num_tests or 1 }}"
+                   class="w-full border border-border rounded-lg px-3 py-2 text-sm text-gray-900 bg-base focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all" />
+            <p class="mono text-[10px] text-gray-400 mt-1">max 5</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Questions per Test <span class="text-red-400">*</span>
+            </label>
+            <input type="number" name="questions_per_test" min="3" max="30" required
+                   value="{{ form.questions_per_test or 10 }}"
+                   class="w-full border border-border rounded-lg px-3 py-2 text-sm text-gray-900 bg-base focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all" />
+            <p class="mono text-[10px] text-gray-400 mt-1">3 - 30</p>
+          </div>
+        </div>
+      </div>
+
+      {# ── Question Source ── #}
+      <div class="pb-4 border-b border-border">
+        <h2 class="mono text-[11px] text-gray-400 uppercase tracking-widest mb-4">Question Source</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
+          {% set sources = [
+            ("ai",         "AI Generated",  "LLM-crafted questions",    "text-emerald-600"),
+            ("examtopics", "ExamTopics",    "Real community questions",  "text-blue-600"),
+            ("mix",        "Mix",           "Blend of both sources",     "text-violet-600"),
+          ] %}
+          {% for key, label, hint, tc in sources %}
+          <label class="flex items-center gap-3 border border-border rounded-lg px-3 py-2.5 cursor-pointer hover:border-accent transition-all has-[:checked]:border-accent has-[:checked]:bg-accent-light">
+            <input type="radio" name="question_source" value="{{ key }}"
+                   {{ 'checked' if (form.question_source or 'ai') == key }}
+                   class="accent-accent" onchange="handleSourceChange(this.value)" />
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-gray-900">{{ label }}</div>
+              <div class="mono text-[10px] {{ tc }}">{{ hint }}</div>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+
+        <div id="examtopics-fields" class="hidden">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            ExamTopics Exam ID <span class="text-red-400">*</span>
+          </label>
+          <input type="number" name="examtopics_exam_id" id="examtopics_exam_id" min="1"
+                 value="{{ form.examtopics_exam_id or '' }}"
+                 placeholder="e.g. 14"
+                 class="w-48 border border-border rounded-lg px-3 py-2 text-sm text-gray-900 bg-base focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all" />
+          <p class="mono text-[10px] text-gray-400 mt-1">the numeric ID from your backend-algoholic exam endpoint</p>
+        </div>
+
+        <div id="mix-fields" class="hidden mt-4">
+          <div class="border border-border rounded-lg p-4 bg-gray-50">
+            <div class="flex justify-between items-center mb-3">
+              <span class="text-sm font-medium text-gray-700">Question Split</span>
+              <span class="mono text-[10px] text-gray-400">drag to adjust</span>
+            </div>
+            <input type="range" name="ai_percentage" id="ai_percentage"
+                   min="0" max="100" step="10"
+                   value="{{ form.ai_percentage or 50 }}"
+                   oninput="updateMixDisplay(this.value)"
+                   class="w-full h-2 rounded-lg appearance-none cursor-pointer accent-accent" />
+            <div class="flex justify-between mt-3">
+              <div>
+                <span class="text-emerald-600 font-semibold text-sm" id="ai-pct">50</span><span class="text-emerald-600 text-xs">%</span>
+                <p class="mono text-[10px] text-gray-400">AI Generated</p>
+              </div>
+              <div class="text-right">
+                <span class="text-blue-600 font-semibold text-sm" id="et-pct">50</span><span class="text-blue-600 text-xs">%</span>
+                <p class="mono text-[10px] text-gray-400">ExamTopics</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# ── LLM Model ── #}
+      <div class="pb-4 border-b border-border">
+        <h2 class="mono text-[11px] text-gray-400 uppercase tracking-widest mb-4">LLM Model</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="model-picker">
+          {% set models = [
+            ("gemini-cheap",       "Gemini 2.0 Flash",    "fastest · cheapest",                       "text-emerald-600",  false),
+            ("gemini",             "Gemini 2.5 Flash",    "smart · fast",                             "text-blue-600",     false),
+            ("openai",             "GPT-4o Mini",         "reliable · balanced",                      "text-violet-600",   true),
+            ("deepseek",           "DeepSeek Chat",       "sharp · cost-efficient",                   "text-cyan-600",     false),
+            ("claude",             "Claude 3.5 Haiku",    "nuanced · careful",                        "text-orange-600",   true),
+            ("perplexity",         "Perplexity Sonar",    "native web search · live data",            "text-pink-600",     true),
+            ("xai",                "Grok 3 Mini",         "native web search · fast",                 "text-rose-600",     true),
+            ("random",             "🎲 Random",           "random model per question · balanced mix",  "text-gray-500",     false),
+            ("web_search_models",  "🔍 Random Web Search","random web-capable model per question",    "text-cyan-700",     true),
+          ] %}
+          {% for key, label, hint, tc, has_native_search in models %}
+          <label class="model-card flex items-center gap-3 border border-border rounded-lg px-3 py-2.5 cursor-pointer hover:border-accent transition-all has-[:checked]:border-accent has-[:checked]:bg-accent-light">
+            <input type="radio" name="llm_model" value="{{ key }}"
+                   {{ 'checked' if (form.llm_model or 'gemini-cheap') == key }}
+                   class="accent-accent" />
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="text-sm font-medium text-gray-900">{{ label }}</span>
+                {% if has_native_search %}
+                <span class="mono text-[9px] text-white bg-cyan-500 px-1.5 py-0.5 rounded leading-none">🔍 web</span>
+                {% endif %}
+              </div>
+              <div class="mono text-[10px] {{ tc }}">{{ hint }}</div>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      {# ── Web Search ── #}
+      <div>
+        <h2 class="mono text-[11px] text-gray-400 uppercase tracking-widest mb-4">Web Search</h2>
+
+        {# Toggle #}
+        <label class="flex items-start gap-3 border border-border rounded-lg px-4 py-3 cursor-pointer hover:border-accent transition-all has-[:checked]:border-accent has-[:checked]:bg-accent-light mb-4">
+          <input type="checkbox" name="enable_web_search" id="enable_web_search" value="true"
+                 {{ 'checked' if form.enable_web_search }}
+                 class="mt-0.5 accent-accent" onchange="handleWebSearchToggle(this.checked)" />
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium text-gray-900">Enable Web Search</span>
+              <span class="mono text-[9px] text-white bg-cyan-500 px-1.5 py-0.5 rounded leading-none">live data</span>
+            </div>
+            <p class="mono text-[10px] text-gray-400 mt-0.5 leading-relaxed">
+              Model will fetch current exam guides, blueprints, and service docs before writing each question.
+              Improves accuracy but increases latency and cost.
+            </p>
+          </div>
+        </label>
+
+        {# Context size — shown when web search is enabled #}
+        <div id="web-search-options" class="{{ '' if form.enable_web_search else 'hidden' }}">
+          <p class="text-sm font-medium text-gray-700 mb-2">Search Context Size</p>
+          <div class="grid grid-cols-3 gap-2">
+            {% set sizes = [
+              ("low",    "Low",    "fast · cheap · brief snippets",    "text-emerald-600"),
+              ("medium", "Medium", "balanced depth",                   "text-blue-600"),
+              ("high",   "High",   "deep research · slower · pricier", "text-orange-600"),
+            ] %}
+            {% for val, label, hint, tc in sizes %}
+            <label class="flex flex-col gap-1 border border-border rounded-lg px-3 py-2.5 cursor-pointer hover:border-accent transition-all has-[:checked]:border-accent has-[:checked]:bg-accent-light">
+              <div class="flex items-center gap-2">
+                <input type="radio" name="web_search_context_size" value="{{ val }}"
+                       {{ 'checked' if (form.web_search_context_size or 'low') == val }}
+                       class="accent-accent" />
+                <span class="text-sm font-medium text-gray-900">{{ label }}</span>
+              </div>
+              <span class="mono text-[10px] {{ tc }} pl-5">{{ hint }}</span>
+            </label>
+            {% endfor %}
+          </div>
+          <p class="mono text-[10px] text-gray-400 mt-2">
+            Note: context size is only honoured by native-search models (Perplexity, Grok, GPT-4o, Claude).
+            Other models use the Exa plugin, which ignores this setting.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    {# Submit #}
+    <div class="mt-4 flex items-center gap-3">
+      <button type="submit" id="submit-btn"
+              class="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-accent text-white text-sm font-semibold hover:bg-accent-dark transition-all shadow-panel">
+        <i data-lucide="sparkles" class="w-4 h-4"></i>
+        Generate Exam
+      </button>
+      <span id="loading-msg" class="hidden mono text-xs text-gray-400 flex items-center gap-1.5">
+        <i data-lucide="loader-circle" class="w-3.5 h-3.5 animate-spin"></i>
+        generating… this may take a minute
+      </span>
+    </div>
+
+  </form>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // ── Question Source toggle ──────────────────────────────────────────────────
+  function handleSourceChange(value) {
+    const etFields  = document.getElementById('examtopics-fields');
+    const mixFields = document.getElementById('mix-fields');
+    const etInput   = document.getElementById('examtopics_exam_id');
+
+    etFields.classList.toggle('hidden', value === 'ai');
+    mixFields.classList.toggle('hidden', value !== 'mix');
+    etInput.required = (value !== 'ai');
+  }
+
+  function updateMixDisplay(value) {
+    document.getElementById('ai-pct').textContent = value;
+    document.getElementById('et-pct').textContent = 100 - parseInt(value);
+  }
+
+  // ── Web Search toggle ───────────────────────────────────────────────────────
+  function handleWebSearchToggle(enabled) {
+    document.getElementById('web-search-options').classList.toggle('hidden', !enabled);
+  }
+
+  // ── Init on load ────────────────────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    const selected = document.querySelector('input[name="question_source"]:checked');
+    if (selected) handleSourceChange(selected.value);
+
+    const slider = document.getElementById('ai_percentage');
+    if (slider) updateMixDisplay(slider.value);
+
+    const wsCheckbox = document.getElementById('enable_web_search');
+    if (wsCheckbox) handleWebSearchToggle(wsCheckbox.checked);
+  });
+
+  // ── Submit spinner ──────────────────────────────────────────────────────────
+  document.getElementById('gen-form').addEventListener('submit', () => {
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').classList.add('opacity-50', 'cursor-not-allowed');
+    document.getElementById('loading-msg').classList.remove('hidden');
+  });
+</script>
+{% endblock %}

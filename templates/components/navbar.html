@@ -1,0 +1,307 @@
+<nav class="bg-panel border-b border-border shadow-panel sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-14">
+
+      {# ── Logo ── #}
+      <div class="flex items-center gap-2">
+        <a href="/" class="flex items-center gap-2 group focus-accent rounded">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center">
+            <img src="{{ url_for('static', path='images/logo.png') }}" alt="TestMaker Logo">
+          </div>
+          <span class="font-semibold text-gray-900 tracking-tight">
+            {{ settings.APP_PREFIX }}<span class="text-accent font-bold">{{ settings.APP_SUFFIX }}</span>
+          </span>
+        </a>
+
+        {# ── Desktop nav links ── #}
+        <div class="hidden md:flex items-center gap-0.5 ml-1">
+          <a href="/"
+             class="nav-link flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium text-gray-600 transition-all duration-150 focus-accent">
+            <i data-lucide="home" class="w-3.5 h-3.5"></i>
+            Home
+          </a>
+          <a href="/exams"
+             class="nav-link flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium text-gray-600 transition-all duration-150 focus-accent">
+            <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+            Exams
+          </a>
+        </div>
+      </div>
+
+      {# ── Right side ── #}
+      <div class="flex items-center gap-2">
+
+        {# Desktop search button #}
+        <button id="search-open-btn"
+                class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border
+                       bg-base text-sm text-gray-400 hover:border-accent hover:text-accent
+                       transition-all mono text-[11px]">
+          <i data-lucide="search" class="w-3.5 h-3.5"></i>
+          <span>Search exams…</span>
+          <span class="ml-1 flex items-center gap-0.5 opacity-60">
+            <kbd class="bg-panel border border-border rounded px-1 py-0.5 text-[10px] leading-none">⌘</kbd>
+            <kbd class="bg-panel border border-border rounded px-1 py-0.5 text-[10px] leading-none">K</kbd>
+          </span>
+        </button>
+
+        {# Mobile search icon #}
+        <button id="search-open-btn-mobile"
+                class="md:hidden p-2 rounded-md text-gray-500 hover:text-accent hover:bg-accent-light transition-all duration-150"
+                aria-label="Search">
+          <i data-lucide="search" class="w-5 h-5"></i>
+        </button>
+
+        {# Mobile hamburger #}
+        <button id="mobile-menu-btn"
+                class="md:hidden p-2 rounded-md text-gray-500 hover:text-accent hover:bg-accent-light transition-all duration-150 focus-accent"
+                aria-label="Toggle menu">
+          <i data-lucide="menu" class="w-5 h-5" id="menu-icon-open"></i>
+          <i data-lucide="x"    class="w-5 h-5 hidden" id="menu-icon-close"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  {# ── Mobile dropdown ── #}
+  <div id="mobile-menu" class="hidden md:hidden border-t border-border bg-panel slide-up">
+    <div class="px-4 py-2 border-b border-border bg-base flex items-center gap-2">
+      <span class="mono text-[10px] text-gray-400">navigation</span>
+      <span class="w-1 h-1 rounded-full bg-accent inline-block"></span>
+      <span class="mono text-[10px] text-accent">online</span>
+    </div>
+    <div class="px-4 py-3 space-y-0.5">
+      <a href="/"
+         class="nav-link flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-600 transition-all duration-150">
+        <i data-lucide="home" class="w-4 h-4"></i> Home
+      </a>
+      <a href="/exams"
+         class="nav-link flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-600 transition-all duration-150">
+        <i data-lucide="file-text" class="w-4 h-4"></i> Exams
+      </a>
+    </div>
+  </div>
+</nav>
+
+
+{# ══════════════════════════════════════════════════════════════════
+   Search Overlay
+══════════════════════════════════════════════════════════════════ #}
+<div id="search-overlay"
+     class="fixed inset-0 z-[100] hidden items-start justify-center pt-[10vh] px-4"
+     role="dialog" aria-modal="true" aria-label="Search">
+
+  {# Backdrop #}
+  <div id="search-backdrop" class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm"></div>
+
+  {# Modal panel #}
+  <div class="relative w-full max-w-lg bg-white rounded-xl shadow-xl overflow-hidden slide-up">
+
+    {# Input row #}
+    <div class="flex items-center gap-3 px-4 py-3 border-b border-border">
+      <i data-lucide="search" class="w-4 h-4 text-gray-400 flex-shrink-0"></i>
+      <input
+        id="search-input"
+        type="text"
+        placeholder="Search exams, vendors, codes…"
+        autocomplete="off"
+        class="flex-1 text-sm text-gray-800 placeholder-gray-400 bg-transparent
+               focus:outline-none"
+      />
+      <button id="search-close-btn"
+              class="mono text-[11px] text-gray-400 bg-base border border-border
+                     rounded px-1.5 py-0.5 hover:border-accent hover:text-accent transition-all flex-shrink-0">
+        esc
+      </button>
+    </div>
+
+    {# Results area #}
+    <div id="search-results" class="max-h-[60vh] overflow-y-auto">
+
+      {# Empty / idle state #}
+      <div id="search-idle" class="px-4 py-8 text-center">
+        <p class="mono text-[11px] text-gray-400">Start typing to search exams…</p>
+      </div>
+
+      {# Loading #}
+      <div id="search-loading" class="hidden px-4 py-6 flex items-center justify-center gap-2">
+        <svg class="animate-spin w-4 h-4 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+        </svg>
+        <span class="mono text-[11px] text-gray-400">Searching…</span>
+      </div>
+
+      {# No results #}
+      <div id="search-empty" class="hidden px-4 py-8 text-center">
+        <i data-lucide="search-x" class="w-6 h-6 text-gray-300 mx-auto mb-2"></i>
+        <p class="mono text-[11px] text-gray-400">No results found.</p>
+      </div>
+
+      {# Populated results #}
+      <div id="search-hits" class="hidden">
+
+        {# Vendors group #}
+        <div id="group-vendors" class="hidden">
+          <div class="px-4 py-2 bg-base border-b border-border">
+            <span class="mono text-[10px] text-gray-400 uppercase tracking-widest">Vendors</span>
+          </div>
+          <ul id="list-vendors"></ul>
+        </div>
+
+        {# Exams group #}
+        <div id="group-exams" class="hidden">
+          <div class="px-4 py-2 bg-base border-b border-border">
+            <span class="mono text-[10px] text-gray-400 uppercase tracking-widest">Exams</span>
+          </div>
+          <ul id="list-exams"></ul>
+        </div>
+
+        {# View all link #}
+        <a id="search-view-all" href="#"
+           class="flex items-center justify-center gap-1.5 px-4 py-3 border-t border-border
+                  mono text-[11px] text-accent hover:bg-accent-light transition-colors">
+          View all results
+          <i data-lucide="arrow-right" class="w-3 h-3"></i>
+        </a>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  // ── elements ────────────────────────────────────────────────────────────────
+  const overlay   = document.getElementById('search-overlay');
+  const backdrop  = document.getElementById('search-backdrop');
+  const input     = document.getElementById('search-input');
+  const closeBtn  = document.getElementById('search-close-btn');
+  const openBtns  = [
+    document.getElementById('search-open-btn'),
+    document.getElementById('search-open-btn-mobile'),
+  ];
+
+  const idle      = document.getElementById('search-idle');
+  const loading   = document.getElementById('search-loading');
+  const empty     = document.getElementById('search-empty');
+  const hits      = document.getElementById('search-hits');
+
+  const gVendors  = document.getElementById('group-vendors');
+  const gExams    = document.getElementById('group-exams');
+  const lVendors  = document.getElementById('list-vendors');
+  const lExams    = document.getElementById('list-exams');
+  const viewAll   = document.getElementById('search-view-all');
+
+  let debounceTimer = null;
+
+  // ── open / close ─────────────────────────────────────────────────────────
+  function openSearch() {
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+    input.value = '';
+    showState('idle');
+    setTimeout(() => input.focus(), 50);
+    lucide.createIcons();
+  }
+
+  function closeSearch() {
+    overlay.classList.add('hidden');
+    overlay.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+
+  openBtns.forEach(btn => btn && btn.addEventListener('click', openSearch));
+  closeBtn.addEventListener('click', closeSearch);
+  backdrop.addEventListener('click', closeSearch);
+
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      openSearch();
+    }
+    if (e.key === 'Escape') closeSearch();
+  });
+
+  // ── state helpers ────────────────────────────────────────────────────────
+  function showState(state) {
+    idle.classList.toggle    ('hidden', state !== 'idle');
+    loading.classList.toggle ('hidden', state !== 'loading');
+    empty.classList.toggle   ('hidden', state !== 'empty');
+    hits.classList.toggle    ('hidden', state !== 'hits');
+  }
+
+  // ── result rendering ─────────────────────────────────────────────────────
+  function renderVendor(v) {
+    return `<li>
+      <a href="${v.url}"
+         class="flex items-center gap-3 px-4 py-2.5 hover:bg-accent-light group transition-colors">
+        <div class="w-7 h-7 rounded bg-accent-light border border-accent flex items-center justify-center flex-shrink-0">
+          <i data-lucide="building-2" class="w-3.5 h-3.5 text-accent"></i>
+        </div>
+        <span class="text-sm text-gray-800 group-hover:text-accent truncate flex-1">${v.name}</span>
+        <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-gray-300 group-hover:text-accent flex-shrink-0 transition-colors"></i>
+      </a>
+    </li>`;
+  }
+
+  function renderExam(e) {
+    const badge = e.exam_code
+      ? `<span class="mono text-[10px] font-semibold text-accent bg-accent-light border border-accent px-1.5 py-0.5 rounded leading-none flex-shrink-0 w-14 text-center truncate">${e.exam_code}</span>`
+      : `<div class="w-7 h-7 rounded bg-accent-light border border-accent flex items-center justify-center flex-shrink-0"><i data-lucide="file-text" class="w-3.5 h-3.5 text-accent"></i></div>`;
+    return `<li>
+      <a href="${e.url}"
+         class="flex items-center gap-3 px-4 py-2.5 hover:bg-accent-light group transition-colors">
+        ${badge}
+        <span class="text-sm text-gray-800 group-hover:text-accent truncate flex-1">${e.name}</span>
+        <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-gray-300 group-hover:text-accent flex-shrink-0 transition-colors"></i>
+      </a>
+    </li>`;
+  }
+
+  // ── search ───────────────────────────────────────────────────────────────
+  async function doSearch(q) {
+    if (!q.trim()) { showState('idle'); return; }
+    showState('loading');
+
+    try {
+      const res  = await fetch('/api/v1/search?q=' + encodeURIComponent(q));
+      const data = await res.json();
+      const totalHits = data.vendors.length + data.exams.length;
+
+      if (totalHits === 0) {
+        showState('empty');
+        return;
+      }
+
+      lVendors.innerHTML = data.vendors.map(renderVendor).join('');
+      lExams.innerHTML   = data.exams.map(renderExam).join('');
+      gVendors.classList.toggle('hidden', data.vendors.length === 0);
+      gExams.classList.toggle  ('hidden', data.exams.length === 0);
+      viewAll.href = '/search?q=' + encodeURIComponent(q);
+
+      showState('hits');
+      lucide.createIcons();
+    } catch (_) {
+      showState('empty');
+    }
+  }
+
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const q = input.value;
+    if (!q.trim()) { showState('idle'); return; }
+    showState('loading');
+    debounceTimer = setTimeout(() => doSearch(q), 250);
+  });
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const q = input.value.trim();
+      if (q) window.location.href = '/search?q=' + encodeURIComponent(q);
+    }
+  });
+})();
+</script>

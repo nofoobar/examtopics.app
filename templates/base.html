@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Free IT Certification Practice Questions & Exams - {{ settings.APP_NAME }}{% endblock %}</title>
+
+  <!-- SEO: Meta Description -->
+  <meta name="description" content="{% block meta_description %}Free IT certification practice questions for AWS, Azure, GCP, CompTIA and more. In depth explanations. No sign-up required - study free and pass first time.{% endblock %}" />
+
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:site_name"   content="{{ settings.APP_NAME }}" />
+  <meta property="og:title"       content="{% block og_title %}Free IT Certification Practice Questions & Exams - {{ settings.APP_NAME }}{% endblock %}" />
+  <meta property="og:description" content="{% block og_description %}{{ settings.APP_DESCRIPTION }}{% endblock %}" />
+  <meta property="og:url"         content="{% block og_url %}{{ settings.APP_URL }}{% endblock %}" />
+  <meta property="og:image"       content="{% block og_image %}{{ settings.APP_URL }}/static/images/og-default.png{% endblock %}" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content="{% block twitter_title %}Free IT Certification Practice Questions & Exams - {{ settings.APP_NAME }}{% endblock %}" />
+  <meta name="twitter:description" content="{% block twitter_description %}{{ settings.APP_DESCRIPTION }}{% endblock %}" />
+  <meta name="twitter:image"       content="{% block twitter_image %}{{ settings.APP_URL }}/static/images/og-default.png{% endblock %}" />
+
+  <!-- Tailwind Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            panel:         '#ffffff',
+            border:        '#e5e7eb',
+            muted:         '#d1d5db',
+            accent:        '#06B6D4',
+            'accent-dark': '#0891b2',
+            'accent-light':'#cffafe',
+          },
+          fontFamily: {
+            sans:  ['Inter', 'ui-sans-serif', 'system-ui'],
+            mono:  ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+          },
+          boxShadow: {
+            panel: '0 1px 3px 0 rgba(0,0,0,0.10)',
+          },
+          animation: {
+            'slide-up': 'slideUp 0.4s ease-in-out',
+          },
+          keyframes: {
+            slideUp: {
+              '0%':   { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Inter + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', path='css/base.css') }}">
+
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="font-sans antialiased text-gray-800 min-h-screen flex flex-col">
+  {% include "components/navbar.html" %}
+  <!-- Page content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 slide-up">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include "components/footer.html" %}
+
+  <!-- Lucide init -->
+  <script>lucide.createIcons();</script>
+
+  <!-- Mobile menu toggle -->
+  <script>
+    const btn       = document.getElementById('mobile-menu-btn');
+    const menu      = document.getElementById('mobile-menu');
+    const iconOpen  = document.getElementById('menu-icon-open');
+    const iconClose = document.getElementById('menu-icon-close');
+
+    btn.addEventListener('click', () => {
+      const isHidden = menu.classList.toggle('hidden');
+      iconOpen.classList.toggle('hidden',  !isHidden);
+      iconClose.classList.toggle('hidden',  isHidden);
+    });
+
+    // Mark current page nav link as active
+    document.querySelectorAll('.nav-link').forEach(link => {
+      if (link.getAttribute('href') === window.location.pathname) {
+        link.classList.add('active');
+      }
+    });
+  </script>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

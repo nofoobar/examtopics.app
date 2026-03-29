@@ -1,0 +1,85 @@
+{#
+  Reusable pagination component.
+
+  Required context variables:
+    page        — current page number (1-indexed)
+    total_pages — total number of pages
+    base_url    — page URL without query string (e.g. "/exams/aws-saa/practice-test-1")
+
+  Renders nothing when total_pages <= 1.
+#}
+
+{% if total_pages > 1 %}
+<nav class="flex items-center justify-between gap-2 panel px-4 py-3" aria-label="Pagination">
+
+  {# ── Prev ── #}
+  {% if page > 1 %}
+  <a href="{{ base_url }}?page={{ page - 1 }}"
+     class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-panel
+            text-sm font-medium text-gray-600 hover:border-accent hover:text-accent
+            transition-all shadow-panel">
+    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+    Prev
+  </a>
+  {% else %}
+  <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border
+               bg-base text-sm font-medium text-gray-300 cursor-not-allowed select-none">
+    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+    Prev
+  </span>
+  {% endif %}
+
+  {# ── Page numbers ── #}
+  <div class="flex items-center gap-1 flex-wrap justify-center">
+    {% for p in range(1, total_pages + 1) %}
+      {# Always show: first, last, current, and neighbours within 1 step #}
+      {% set show = (p == 1 or p == total_pages or (p >= page - 1 and p <= page + 1)) %}
+      {# Show ellipsis placeholder once before and after the window #}
+      {% set ellipsis_before = (p == 2 and page > 3) %}
+      {% set ellipsis_after  = (p == total_pages - 1 and page < total_pages - 2) %}
+
+      {% if ellipsis_before %}
+      <span class="mono text-xs text-gray-400 px-1">…</span>
+      {% endif %}
+
+      {% if show %}
+        {% if p == page %}
+        <span class="mono text-xs font-semibold text-white bg-accent
+                     rounded-lg px-3 py-1.5 leading-none select-none">
+          {{ p }}
+        </span>
+        {% else %}
+        <a href="{{ base_url }}?page={{ p }}"
+           class="mono text-xs font-medium text-gray-600 border border-border bg-panel
+                  rounded-lg px-3 py-1.5 leading-none hover:border-accent hover:text-accent
+                  transition-all">
+          {{ p }}
+        </a>
+        {% endif %}
+      {% endif %}
+
+      {% if ellipsis_after %}
+      <span class="mono text-xs text-gray-400 px-1">…</span>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {# ── Next ── #}
+  {% if page < total_pages %}
+  <a href="{{ base_url }}?page={{ page + 1 }}"
+     class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-panel
+            text-sm font-medium text-gray-600 hover:border-accent hover:text-accent
+            transition-all shadow-panel">
+    Next
+    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+  </a>
+  {% else %}
+  <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border
+               bg-base text-sm font-medium text-gray-300 cursor-not-allowed select-none">
+    Next
+    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+  </span>
+  {% endif %}
+
+</nav>
+{% endif %}

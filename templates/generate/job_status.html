@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Generating {{ job.exam_name }} - {{ settings.APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="slide-up max-w-xl mx-auto">
+
+  {# Breadcrumb #}
+  <div class="mono text-xs text-gray-400 flex items-center gap-1.5 mb-5">
+    <i data-lucide="terminal" class="w-3 h-3"></i>
+    <a href="/" class="hover:text-accent transition-colors">home</a>
+    <span class="text-accent">/</span>
+    <a href="/generate" class="hover:text-accent transition-colors">generate</a>
+    <span class="text-accent">/</span>
+    <span>job #{{ job.id }}</span>
+  </div>
+
+  <div class="panel p-6">
+
+    {# Header #}
+    <div class="flex items-center gap-3 mb-6">
+      <div id="status-icon"
+           class="w-10 h-10 rounded-lg bg-accent-light border border-accent flex items-center justify-center flex-shrink-0">
+        <i data-lucide="loader-circle" class="w-5 h-5 text-accent animate-spin"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-gray-900 text-base leading-snug">{{ job.exam_name }}</h1>
+        <p id="status-label" class="mono text-[11px] text-gray-400">
+          {% if job.status == 'pending' %}queued - starting soon...
+          {% elif job.status == 'running' %}generating questions...
+          {% elif job.status == 'done' %}done
+          {% else %}failed
+          {% endif %}
+        </p>
+      </div>
+    </div>
+
+    {# Progress bar #}
+    <div id="progress-wrap" class="mb-5 {% if job.status in ('done', 'failed') %}hidden{% endif %}">
+      <div class="flex items-center justify-between mb-1.5">
+        <span class="mono text-[11px] text-gray-400">Progress</span>
+        <span id="progress-pct" class="mono text-[11px] text-accent font-medium">0%</span>
+      </div>
+      <div class="w-full bg-base border border-border rounded-full h-2 overflow-hidden">
+        <div id="progress-bar"
+             class="bg-accent h-2 rounded-full transition-all duration-500"
+             style="width: 0%"></div>
+      </div>
+      <p id="progress-steps" class="mono text-[10px] text-gray-400 mt-1">
+        0 / {{ job.total_steps }} questions
+      </p>
+    </div>
+
+    {# Error panel — hidden until failed #}
+    <div id="error-panel" class="hidden mb-4 border border-red-300 bg-red-50 rounded-lg px-4 py-3 flex items-start gap-2">
+      <i data-lucide="alert-circle" class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5"></i>
+      <p id="error-msg" class="text-sm text-red-700"></p>
+    </div>
+
+    {# Success CTA — hidden until done #}
+    <div id="success-panel" class="hidden">
+      <div class="border border-emerald-300 bg-emerald-50 rounded-lg px-4 py-3 flex items-center gap-3 mb-4">
+        <i data-lucide="check-circle" class="w-5 h-5 text-emerald-500 flex-shrink-0"></i>
+        <p class="text-sm font-medium text-emerald-800">Exam generated successfully!</p>
+      </div>
+      <a id="exam-link" href="#"
+         class="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-accent text-white text-sm font-semibold hover:bg-accent-dark transition-all shadow-panel">
+        <i data-lucide="file-text" class="w-4 h-4"></i>
+        View Exam
+      </a>
+    </div>
+
+    {# Footer note #}
+    <p id="footer-note" class="mono text-[10px] text-gray-400 mt-5">
+      You can leave this page — generation continues in the background.
+      This page auto-refreshes every 3 seconds.
+    </p>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  const JOB_ID   = {{ job.id }};
+  const POLL_MS  = 3000;
+  let   timer    = null;
+  let   finished = {{ 'true' if job.status in ('done', 'failed') else 'false' }};
+
+  const bar       = document.getElementById('progress-bar');
+  const pct       = document.getElementById('progress-pct');
+  const steps     = document.getElementById('progress-steps');
+  const label     = document.getElementById('status-label');
+  const icon      = document.getElementById('status-icon');
+  const progWrap  = document.getElementById('progress-wrap');
+  const errPanel  = document.getElementById('error-panel');
+  const errMsg    = document.getElementById('error-msg');
+  const okPanel   = document.getElementById('success-panel');
+  const examLink  = document.getElementById('exam-link');
+  const footerNote = document.getElementById('footer-note');
+
+  function applyState(data) {
+    const p = data.progress_pct;
+
+    // Progress bar
+    bar.style.width   = p + '%';
+    pct.textContent   = p + '%';
+    steps.textContent = data.completed_steps + ' / ' + data.total_steps + ' questions';
+
+    if (data.status === 'pending') {
+      label.textContent = 'queued - starting soon...';
+    } else if (data.status === 'running') {
+      label.textContent = 'generating questions...';
+    } else if (data.status === 'done') {
+      progWrap.classList.add('hidden');
+      okPanel.classList.remove('hidden');
+      examLink.href = data.result_url;
+      label.textContent = 'done';
+      icon.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5 text-emerald-500"></i>';
+      icon.className = 'w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-300 flex items-center justify-center flex-shrink-0';
+      footerNote.textContent = '';
+      lucide.createIcons();
+      stop();
+    } else if (data.status === 'failed') {
+      progWrap.classList.add('hidden');
+      errPanel.classList.remove('hidden');
+      errMsg.textContent = data.error || 'An unknown error occurred.';
+      label.textContent = 'failed';
+      icon.innerHTML = '<i data-lucide="x-circle" class="w-5 h-5 text-red-500"></i>';
+      icon.className = 'w-10 h-10 rounded-lg bg-red-50 border border-red-300 flex items-center justify-center flex-shrink-0';
+      footerNote.textContent = '';
+      lucide.createIcons();
+      stop();
+    }
+  }
+
+  async function poll() {
+    try {
+      const res  = await fetch('/api/v1/generate/jobs/' + JOB_ID);
+      const data = await res.json();
+      applyState(data);
+    } catch (_) {
+      // Network hiccup — keep polling
+    }
+  }
+
+  function stop() {
+    if (timer) clearInterval(timer);
+    finished = true;
+  }
+
+  if (!finished) {
+    poll();  // immediate first tick
+    timer = setInterval(poll, POLL_MS);
+  }
+})();
+</script>
+{% endblock %}

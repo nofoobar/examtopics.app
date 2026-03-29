@@ -1,0 +1,336 @@
+<div class="slide-up">
+
+  <!-- Hero -->
+  <div class="panel p-8 mb-6 flex flex-col items-center text-center">
+    <div class="mono text-xs text-gray-400 mb-4 flex items-center gap-1.5">
+      <i data-lucide="terminal" class="w-3 h-3"></i>
+      <span>{{ settings.APP_PREFIX }}<span class="text-accent">/</span>home</span>
+    </div>
+
+    <h1 class="text-5xl font-extrabold text-gray-900 mb-3 tracking-tight">
+      Free IT Certification — <span class="text-accent font-bold">Solved Questions</span>
+    </h1>
+    <p class="text-gray-500 max-w-lg mb-6 text-lg leading-relaxed">
+      Your IT certification exam prep platform. Practice questions, track progress, and ace your exams.
+    </p>
+
+    <div class="flex items-center gap-3">
+      <a href="/exams"
+         class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent text-white text-sm font-semibold hover:bg-accent-dark transition-all shadow-panel">
+        <i data-lucide="file-text" class="w-4 h-4"></i>
+        Browse Exams
+      </a>
+      <button
+        id="open-exam-request-modal"
+        class="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-border bg-panel text-sm font-medium text-gray-600 hover:border-accent hover:text-accent transition-all shadow-panel">
+        <i data-lucide="zap" class="w-4 h-4"></i>
+        Request an Exam
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    {% for stat in [
+      {"icon": "layers",       "value": total_exams,  "sub": "practice exams"},
+      {"icon": "check-circle", "value": "8,400",      "sub": "practice questions"},
+      {"icon": "users",        "value": "3.2k",       "sub": "active learners"}
+    ] %}
+    <div class="panel p-4 flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg bg-accent-light flex items-center justify-center flex-shrink-0">
+        <i data-lucide="{{ stat.icon }}" class="w-5 h-5 text-accent"></i>
+      </div>
+      <div>
+        <div class="font-semibold text-gray-900 text-lg leading-none">{{ stat.value }}</div>
+        <div class="mono text-[11px] text-gray-400 mt-0.5">{{ stat.sub }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="panel px-4 py-3 flex items-center gap-2 mb-6">
+    <i data-lucide="info" class="w-4 h-4 text-accent flex-shrink-0"></i>
+    <span class="mono text-xs text-gray-400">
+      No sign up required, no credit card required.
+    </span>
+  </div>
+
+  <!-- ── Exam grid ── -->
+  {% if vendors_with_exams %}
+  <div class="mb-4 flex items-center justify-between">
+    <h2 class="font-semibold text-gray-900 text-base">Browse by Vendor</h2>
+    <a href="/exams" class="mono text-[11px] text-accent hover:underline flex items-center gap-1">
+      View all <i data-lucide="arrow-right" class="w-3 h-3"></i>
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start mb-6">
+    {% for row in vendors_with_exams %}
+    {% set vendor = row.vendor %}
+    {% set exams  = row.exams %}
+
+    <div class="panel flex flex-col" id="vendor-{{ vendor.slug }}">
+      <div class="px-4 pt-4 pb-3 border-b border-border">
+        <a href="/exams/vendor/{{ vendor.slug }}"
+           class="mono text-[11px] text-accent hover:underline flex items-center gap-1 mb-1">
+          <i data-lucide="layers" class="w-3 h-3"></i>
+          All {{ vendor.name }} Exams
+        </a>
+        <h3 class="font-semibold text-gray-900 text-sm leading-snug">
+          Top {{ vendor.name }} Certification Exams
+        </h3>
+      </div>
+
+      {% if not exams %}
+        <div class="px-4 py-4">
+          <p class="mono text-[11px] text-gray-400">No active exams yet.</p>
+        </div>
+      {% else %}
+        <ul class="divide-y divide-border">
+          {% for exam in exams %}
+          <li>
+            <a href="/exams/{{ exam.slug }}"
+               class="flex items-start gap-2 px-4 py-2.5 hover:bg-accent-light group transition-colors duration-100">
+              {% if exam.exam_code %}
+              <span class="mono text-[10px] text-accent font-medium flex-shrink-0 mt-0.5 w-16 truncate">
+                {{ exam.exam_code }}
+              </span>
+              {% endif %}
+              <span class="text-sm text-accent group-hover:underline leading-snug">
+                {{ exam.name }}
+              </span>
+              {% if exam.is_featured %}
+              <span class="ml-auto flex-shrink-0 mono text-[9px] text-amber-600 bg-amber-50 border border-amber-200 px-1 py-0.5 rounded leading-none self-center">★</span>
+              {% endif %}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+        <div class="px-4 py-2 border-t border-border bg-base rounded-b-lg">
+          <span class="mono text-[10px] text-gray-400">
+            {{ exams | length }} exam{{ 's' if exams | length != 1 }}
+          </span>
+        </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     Request an Exam — Modal
+════════════════════════════════════════════════════════ -->
+<div id="exam-request-modal"
+     class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+     role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+  <!-- Backdrop -->
+  <div id="exam-request-backdrop"
+       class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"></div>
+
+  <!-- Panel -->
+  <div class="relative bg-white rounded-xl shadow-xl w-full max-w-md p-6 slide-up">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-5">
+      <div>
+        <div class="mono text-[11px] text-gray-400 mb-1 flex items-center gap-1">
+          <i data-lucide="zap" class="w-3 h-3 text-accent"></i>
+          exam request
+        </div>
+        <h2 id="modal-title" class="text-lg font-bold text-gray-900">Request an Exam</h2>
+      </div>
+      <button id="close-exam-request-modal"
+              class="text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- Form -->
+    <div id="exam-request-form-wrap">
+      <p class="text-sm text-gray-500 mb-5 leading-relaxed">
+        Can't find your certification exam? Let us know and we'll prioritise adding it.
+      </p>
+
+      <div class="space-y-4">
+
+        <!-- Exam name -->
+        <div>
+          <label class="block mono text-[11px] text-gray-500 mb-1.5" for="er-exam-name">
+            Exam name <span class="text-red-400">*</span>
+          </label>
+          <input id="er-exam-name" type="text"
+                 placeholder="e.g. AWS Certified Solutions Architect"
+                 class="w-full border border-border rounded-lg px-3 py-2 text-sm text-gray-800
+                        placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent
+                        focus:border-transparent transition" />
+          <p id="er-exam-name-err" class="hidden mono text-[11px] text-red-500 mt-1"></p>
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label class="block mono text-[11px] text-gray-500 mb-1.5" for="er-email">
+            Your email <span class="text-red-400">*</span>
+          </label>
+          <input id="er-email" type="email" placeholder="you@example.com"
+                 class="w-full border border-border rounded-lg px-3 py-2 text-sm text-gray-800
+                        placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent
+                        focus:border-transparent transition" />
+          <p id="er-email-err" class="hidden mono text-[11px] text-red-500 mt-1"></p>
+        </div>
+
+        <!-- Message -->
+        <div>
+          <label class="block mono text-[11px] text-gray-500 mb-1.5" for="er-message">
+            Anything else? <span class="text-gray-300">(optional)</span>
+          </label>
+          <textarea id="er-message" rows="3"
+                    placeholder="Why this exam matters, how many people need it, etc."
+                    class="w-full border border-border rounded-lg px-3 py-2 text-sm text-gray-800
+                           placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent
+                           focus:border-transparent transition resize-none"></textarea>
+        </div>
+
+        <!-- Error banner -->
+        <p id="er-global-err"
+           class="hidden mono text-[11px] text-red-500 bg-red-50 border border-red-200
+                  rounded-lg px-3 py-2"></p>
+
+        <!-- Submit -->
+        <button id="er-submit"
+                class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
+                       bg-accent text-white text-sm font-semibold hover:bg-accent-dark
+                       transition-all shadow-panel disabled:opacity-50 disabled:cursor-not-allowed">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          Submit Request
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Success state -->
+    <div id="exam-request-success" class="hidden text-center py-6">
+      <div class="w-12 h-12 rounded-full bg-accent-light flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="check-circle" class="w-6 h-6 text-accent"></i>
+      </div>
+      <h3 class="font-bold text-gray-900 mb-1">Request received!</h3>
+      <p class="text-sm text-gray-500">Thanks — we'll review it and get back to you.</p>
+      <button id="er-close-success"
+              class="mt-5 mono text-[11px] text-accent hover:underline">
+        Close
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  const modal    = document.getElementById('exam-request-modal');
+  const backdrop = document.getElementById('exam-request-backdrop');
+  const openBtn  = document.getElementById('open-exam-request-modal');
+  const closeBtn = document.getElementById('close-exam-request-modal');
+  const submitBtn = document.getElementById('er-submit');
+  const formWrap = document.getElementById('exam-request-form-wrap');
+  const success  = document.getElementById('exam-request-success');
+  const closeSuccessBtn = document.getElementById('er-close-success');
+
+  function openModal() {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+    lucide.createIcons();
+  }
+
+  function closeModal() {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+    formWrap.classList.remove('hidden');
+    success.classList.add('hidden');
+    ['er-exam-name', 'er-email', 'er-message'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    ['er-exam-name-err', 'er-email-err', 'er-global-err'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.add('hidden');
+      el.textContent = '';
+    });
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Submit Request';
+    lucide.createIcons();
+  }
+
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  closeSuccessBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', closeModal);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  submitBtn.addEventListener('click', async () => {
+    let valid = true;
+
+    const examName = document.getElementById('er-exam-name').value.trim();
+    const examErr  = document.getElementById('er-exam-name-err');
+    if (!examName) {
+      examErr.textContent = 'Exam name is required.';
+      examErr.classList.remove('hidden');
+      valid = false;
+    } else {
+      examErr.classList.add('hidden');
+    }
+
+    const email    = document.getElementById('er-email').value.trim();
+    const emailErr = document.getElementById('er-email-err');
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      emailErr.textContent = 'A valid email address is required.';
+      emailErr.classList.remove('hidden');
+      valid = false;
+    } else {
+      emailErr.classList.add('hidden');
+    }
+
+    if (!valid) return;
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Sending…';
+
+    const globalErr = document.getElementById('er-global-err');
+
+    try {
+      const res = await fetch('/api/v1/exam-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          exam_name: examName,
+          email:     email,
+          message:   document.getElementById('er-message').value.trim() || null,
+        }),
+      });
+
+      if (res.ok) {
+        formWrap.classList.add('hidden');
+        success.classList.remove('hidden');
+        lucide.createIcons();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        globalErr.textContent = data.detail || 'Something went wrong. Please try again.';
+        globalErr.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Submit Request';
+        lucide.createIcons();
+      }
+    } catch (_) {
+      globalErr.textContent = 'Network error — please check your connection and try again.';
+      globalErr.classList.remove('hidden');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Submit Request';
+      lucide.createIcons();
+    }
+  });
+})();
+</script>

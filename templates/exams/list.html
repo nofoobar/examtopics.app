@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Free IT Certification Practice Exams - AWS, Azure, GCP, CompTIA and More - {{ settings.APP_NAME }}{% endblock %}
+{% block meta_description %}Browse free IT certification practice exams for AWS, Azure, GCP, CompTIA and more. In depth explanations. No sign-up needed - start studying free today.{% endblock %}
+{% block og_title %}Free IT Certification Practice Exams - {{ settings.APP_NAME }}{% endblock %}
+{% block og_description %}Browse free IT certification practice exams for AWS, Azure, GCP, CompTIA and more. In depth explanations. No sign-up needed.{% endblock %}
+{% block og_url %}{{ settings.APP_URL }}/exams{% endblock %}
+
+{% block content %}
+<div class="slide-up">
+
+  <!-- Page header -->
+  <div class="mb-6">
+    <div class="mono text-xs text-gray-400 flex items-center gap-1.5 mb-2">
+      <i data-lucide="terminal" class="w-3 h-3"></i>
+      <a href="/" class="hover:text-accent transition-colors">home</a>
+      <span class="text-accent">/</span>
+      <span>exams</span>
+    </div>
+    <div class="flex items-end justify-between flex-wrap gap-3">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Free IT Certification Practice Exams</h1>
+        <p class="text-sm text-gray-500 mt-1">
+          {{ total_exams }} free practice exam{{ 's' if total_exams != 1 }} across
+          {{ vendors_with_exams | length }} vendor{{ 's' if vendors_with_exams | length != 1 }} - no sign-up required
+        </p>
+      </div>
+    </div>
+  </div>
+
+  {% if not vendors_with_exams %}
+    <div class="panel p-12 flex flex-col items-center text-center">
+      <i data-lucide="inbox" class="w-10 h-10 text-gray-300 mb-3"></i>
+      <p class="text-sm text-gray-500">No exams available yet. Check back soon.</p>
+    </div>
+  {% else %}
+
+  <!-- Vendor grid — 1 col mobile / 2 col md / 3 col xl -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+
+    {% for row in vendors_with_exams %}
+    {% set vendor = row.vendor %}
+    {% set exams  = row.exams %}
+
+    <div class="panel flex flex-col" id="vendor-{{ vendor.slug }}">
+
+      <!-- Vendor header -->
+      <div class="px-4 pt-4 pb-3 border-b border-border">
+        <a href="/exams/vendor/{{ vendor.slug }}"
+           class="mono text-[11px] text-accent hover:underline flex items-center gap-1 mb-1">
+          <i data-lucide="layers" class="w-3 h-3"></i>
+          All {{ vendor.name }} Exams
+        </a>
+        <h2 class="font-semibold text-gray-900 text-sm leading-snug">
+          Top {{ vendor.name }} Certification Exams
+        </h2>
+      </div>
+
+      <!-- Exam link list -->
+      {% if not exams %}
+        <div class="px-4 py-4">
+          <p class="mono text-[11px] text-gray-400">No active exams yet.</p>
+        </div>
+      {% else %}
+        <ul class="divide-y divide-border">
+          {% for exam in exams %}
+          <li>
+            <a href="/exams/{{ exam.slug }}"
+               class="flex items-start gap-2 px-4 py-2.5 hover:bg-accent-light group transition-colors duration-100">
+
+              {% if exam.exam_code %}
+              <span class="mono text-[10px] text-accent font-medium flex-shrink-0 mt-0.5 w-16 truncate">
+                {{ exam.exam_code }}
+              </span>
+              {% endif %}
+
+              <span class="text-sm text-accent group-hover:underline leading-snug">
+                {{ exam.name }}
+              </span>
+
+              {% if exam.is_featured %}
+              <span class="ml-auto flex-shrink-0 mono text-[9px] text-amber-600 bg-amber-50 border border-amber-200 px-1 py-0.5 rounded leading-none self-center">
+                ★
+              </span>
+              {% endif %}
+
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <!-- Footer count -->
+        <div class="px-4 py-2 border-t border-border bg-base rounded-b-lg">
+          <span class="mono text-[10px] text-gray-400">
+            {{ exams | length }} exam{{ 's' if exams | length != 1 }}
+          </span>
+        </div>
+      {% endif %}
+
+    </div>
+    {% endfor %}
+
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Advertise with Us — {{ settings.APP_NAME }}{% endblock %}
+{% block meta_description %}Reach {{ total_exams }}+ IT certification exam candidates on {{ settings.APP_NAME }}. Two simple ad tiers — sitewide or per-exam targeted placement.{% endblock %}
+{% block og_title %}Advertise with Us — {{ settings.APP_NAME }}{% endblock %}
+{% block og_url %}{{ settings.APP_URL }}/advertise-with-us{% endblock %}
+
+{% block content %}
+<div class="slide-up max-w-3xl mx-auto">
+
+  {# Breadcrumb #}
+  <div class="mono text-xs text-gray-400 flex items-center gap-1.5 mb-5">
+    <i data-lucide="terminal" class="w-3 h-3"></i>
+    <a href="/" class="hover:text-accent transition-colors">home</a>
+    <span class="text-accent">/</span>
+    <span>advertise-with-us</span>
+  </div>
+
+  {# Hero #}
+  <div class="panel p-8 mb-8 text-center">
+    <div class="w-12 h-12 rounded-xl bg-accent-light border border-accent flex items-center justify-center mx-auto mb-4">
+      <i data-lucide="megaphone" class="w-6 h-6 text-accent"></i>
+    </div>
+    <h1 class="text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">Advertise with Us</h1>
+    <p class="text-gray-500 max-w-lg mx-auto leading-relaxed">
+      Put your product in front of IT professionals actively preparing for certifications.
+      High-intent audience, zero noise.
+    </p>
+
+    {# Audience stat strip #}
+    <div class="mt-6 grid grid-cols-3 gap-4 border-t border-border pt-6">
+      {% for stat in [
+        {"icon": "users",        "value": "3,200+",  "label": "monthly learners"},
+        {"icon": "file-text",    "value": total_exams ~ "+", "label": "practice exams"},
+        {"icon": "check-circle", "value": "8,400+",  "label": "questions answered"},
+      ] %}
+      <div class="flex flex-col items-center gap-1">
+        <i data-lucide="{{ stat.icon }}" class="w-4 h-4 text-accent mb-0.5"></i>
+        <span class="font-bold text-gray-900 text-lg leading-none">{{ stat.value }}</span>
+        <span class="mono text-[10px] text-gray-400">{{ stat.label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# Pricing tiers #}
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+
+    {# ── Tier 1: Sitewide ── #}
+    <div class="panel p-6 flex flex-col">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-9 h-9 rounded-lg bg-accent-light border border-accent flex items-center justify-center flex-shrink-0">
+          <i data-lucide="globe" class="w-4 h-4 text-accent"></i>
+        </div>
+        <div>
+          <p class="mono text-[10px] text-gray-400 uppercase tracking-widest">Tier 1</p>
+          <h2 class="font-bold text-gray-900 text-base leading-none mt-0.5">Sitewide Generic Ad</h2>
+        </div>
+      </div>
+
+      <div class="mb-5">
+        <div class="flex items-end gap-1.5 mb-1">
+          <span class="text-3xl font-extrabold text-gray-900">$2,000</span>
+          <span class="mono text-[11px] text-gray-400 mb-1">/ month</span>
+        </div>
+        <p class="text-sm text-gray-500 leading-relaxed">
+          Your banner shown across all exam and test pages — maximum reach across every visitor regardless of the certification they're studying.
+        </p>
+      </div>
+
+      <ul class="space-y-2.5 mb-6 flex-1">
+        {% for feat in [
+          "Displayed on every exam & test page",
+          "Banner, inline, and sidebar placements",
+          "Reaches all certification audiences",
+          "Custom image + headline + link",
+          "Click tracking included",
+          "Goes live within 24 hours",
+        ] %}
+        <li class="flex items-start gap-2 text-sm text-gray-700">
+          <i data-lucide="check" class="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5"></i>
+          {{ feat }}
+        </li>
+        {% endfor %}
+      </ul>
+
+      <a href="mailto:ads@{{ settings.PLATFORM }}?subject=Sitewide%20Ad%20Inquiry&body=Hi%2C%20I%27m%20interested%20in%20the%20Sitewide%20Generic%20Ad%20(%242%2C000%2Fmonth)."
+         class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border-2 border-accent
+                text-accent text-sm font-semibold hover:bg-accent hover:text-white transition-all">
+        <i data-lucide="mail" class="w-4 h-4"></i>
+        Get Started
+      </a>
+    </div>
+
+    {# ── Tier 2: Per-Exam ── #}
+    <div class="panel p-6 flex flex-col relative overflow-hidden border-accent border-2">
+      {# Popular badge #}
+      <div class="absolute top-4 right-4">
+        <span class="mono text-[9px] text-white bg-accent px-2 py-1 rounded-full leading-none font-medium">
+          BEST VALUE
+        </span>
+      </div>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-9 h-9 rounded-lg bg-accent border border-accent flex items-center justify-center flex-shrink-0">
+          <i data-lucide="target" class="w-4 h-4 text-white"></i>
+        </div>
+        <div>
+          <p class="mono text-[10px] text-gray-400 uppercase tracking-widest">Tier 2</p>
+          <h2 class="font-bold text-gray-900 text-base leading-none mt-0.5">Custom Per-Exam Ad</h2>
+        </div>
+      </div>
+
+      <div class="mb-5">
+        <div class="flex items-end gap-1.5 mb-1">
+          <span class="text-3xl font-extrabold text-gray-900">$3,000</span>
+          <span class="mono text-[11px] text-gray-400 mb-1">/ month</span>
+        </div>
+        <p class="text-sm text-gray-500 leading-relaxed">
+          Exclusively target candidates studying a specific certification — pinpoint the exact audience most relevant to your product.
+        </p>
+      </div>
+
+      <ul class="space-y-2.5 mb-6 flex-1">
+        {% for feat in [
+          "Everything in Tier 1",
+          "Pinned to one specific exam (e.g. AWS SAA)",
+          "Higher relevance = higher CTR",
+          "Exclusive slot — no other ads on that exam",
+          "Priority placement above generic ads",
+          "Dedicated performance report",
+        ] %}
+        <li class="flex items-start gap-2 text-sm text-gray-700">
+          <i data-lucide="check" class="w-4 h-4 text-accent flex-shrink-0 mt-0.5"></i>
+          {{ feat }}
+        </li>
+        {% endfor %}
+      </ul>
+
+      <a href="mailto:ads@{{ settings.PLATFORM }}?subject=Per-Exam%20Ad%20Inquiry&body=Hi%2C%20I%27m%20interested%20in%20the%20Per-Exam%20Ad%20(%243%2C000%2Fmonth).%20Target%20exam%3A%20"
+         class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-accent
+                text-white text-sm font-semibold hover:bg-accent-dark transition-all shadow-panel">
+        <i data-lucide="mail" class="w-4 h-4"></i>
+        Get Started
+      </a>
+    </div>
+
+  </div>
+
+  {# How it works #}
+  <div class="panel p-6 mb-8">
+    <h2 class="font-bold text-gray-900 text-base mb-5 flex items-center gap-2">
+      <i data-lucide="list-ordered" class="w-4 h-4 text-accent"></i>
+      How it works
+    </h2>
+    <ol class="space-y-4">
+      {% for step in [
+        ("Mail us",         "Send an email with your chosen tier, target exam (for Tier 2), and a brief description of what you're advertising."),
+        ("Send creatives",  "We'll confirm availability and send you our ad specs. You provide the image, headline, and destination URL."),
+        ("We go live",      "Your ad is published within 24 hours. We send you a confirmation with a live preview link."),
+        ("Track results",   "You receive a monthly click-through report. Renew or adjust targeting at any time."),
+      ] %}
+      <li class="flex items-start gap-4">
+        <div class="w-7 h-7 rounded-full bg-accent-light border border-accent flex items-center justify-center flex-shrink-0 mt-0.5">
+          <span class="mono text-[11px] font-bold text-accent">{{ loop.index }}</span>
+        </div>
+        <div>
+          <p class="font-semibold text-gray-900 text-sm">{{ step[0] }}</p>
+          <p class="text-sm text-gray-500 mt-0.5 leading-relaxed">{{ step[1] }}</p>
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+
+  {# CTA footer #}
+  <div class="panel p-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-accent-light border-accent">
+    <div>
+      <p class="font-bold text-gray-900 text-sm">Ready to reach IT certification candidates?</p>
+      <p class="mono text-[11px] text-gray-500 mt-0.5">Drop us a line and we'll get back within 1 business day.</p>
+    </div>
+    <a href="mailto:ads@{{ settings.PLATFORM }}"
+       class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent text-white text-sm
+              font-semibold hover:bg-accent-dark transition-all shadow-panel flex-shrink-0">
+      <i data-lucide="send" class="w-4 h-4"></i>
+      Contact Us
+    </a>
+  </div>
+
+</div>
+{% endblock %}

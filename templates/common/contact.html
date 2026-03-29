@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us — {{ settings.APP_NAME }}{% endblock %}
+{% block meta_description %}Get in touch with the {{ settings.APP_NAME }} team.{% endblock %}
+
+{% block content %}
+<div class="slide-up max-w-xl mx-auto">
+
+  <div class="mono text-xs text-gray-400 flex items-center gap-1.5 mb-5">
+    <i data-lucide="terminal" class="w-3 h-3"></i>
+    <a href="/" class="hover:text-accent transition-colors">home</a>
+    <span class="text-accent">/</span>
+    <span>contact</span>
+  </div>
+
+  <div class="panel p-8 mb-5">
+    <div class="w-12 h-12 rounded-xl bg-accent-light border border-accent flex items-center justify-center mb-5">
+      <i data-lucide="mail" class="w-6 h-6 text-accent"></i>
+    </div>
+    <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight mb-2">Contact Us</h1>
+    <p class="text-sm text-gray-500 leading-relaxed mb-8">
+      Have a question, found an issue, or want to work with us? Drop us an email and we'll get back to you within one business day.
+    </p>
+
+    <div class="flex flex-col gap-4">
+
+      {# Primary contact #}
+      <a href="mailto:admin@examtopics.app"
+         class="flex items-center gap-4 panel px-5 py-4 hover:border-accent group transition-all">
+        <div class="w-10 h-10 rounded-lg bg-accent-light border border-accent flex items-center justify-center flex-shrink-0 group-hover:bg-accent group-hover:border-accent transition-colors">
+          <i data-lucide="mail" class="w-5 h-5 text-accent group-hover:text-white transition-colors"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-gray-900">General enquiries</p>
+          <p class="mono text-[11px] text-accent mt-0.5">admin@examtopics.app</p>
+        </div>
+        <i data-lucide="arrow-right" class="w-4 h-4 text-gray-300 group-hover:text-accent flex-shrink-0 transition-colors"></i>
+      </a>
+
+      {# Advertising #}
+      <a href="mailto:ads@{{ settings.PLATFORM }}?subject=Ad%20Inquiry"
+         class="flex items-center gap-4 panel px-5 py-4 hover:border-accent group transition-all">
+        <div class="w-10 h-10 rounded-lg bg-accent-light border border-accent flex items-center justify-center flex-shrink-0 group-hover:bg-accent group-hover:border-accent transition-colors">
+          <i data-lucide="megaphone" class="w-5 h-5 text-accent group-hover:text-white transition-colors"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-gray-900">Advertising</p>
+          <p class="mono text-[11px] text-accent mt-0.5">ads@{{ settings.PLATFORM }}</p>
+        </div>
+        <i data-lucide="arrow-right" class="w-4 h-4 text-gray-300 group-hover:text-accent flex-shrink-0 transition-colors"></i>
+      </a>
+
+    </div>
+  </div>
+
+  {# Response time note #}
+  <div class="panel px-5 py-4 flex items-start gap-3">
+    <i data-lucide="clock" class="w-4 h-4 text-accent flex-shrink-0 mt-0.5"></i>
+    <p class="mono text-[11px] text-gray-500 leading-relaxed">
+      We typically respond within 1 business day. For exam content issues or question corrections,
+      please include the exam name and question number in your subject line.
+    </p>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{# ── SEO ───────────────────────────────────────────────────────────────── #}
+{% block title %}Free {{ vendor.name }} Certification Practice Questions - {{ settings.APP_NAME }}{% endblock %}
+
+{% block meta_description %}{{ exams_with_counts | length }} free {{ vendor.name }} certification practice exams with {{ total_questions }} questions and in depth explanations. No sign-up required - study free and pass first time.{% endblock %}
+
+{% block og_title %}Free {{ vendor.name }} Certification Practice Questions - {{ settings.APP_NAME }}{% endblock %}
+
+{% block og_description %}{{ exams_with_counts | length }} free {{ vendor.name }} certification practice exams. {{ total_questions }} questions with in depth explanations. No sign-up required.{% endblock %}
+
+{% block og_url %}{{ settings.APP_URL }}/exams/vendor/{{ vendor.slug }}{% endblock %}
+
+{# ── Content ───────────────────────────────────────────────────────────── #}
+{% block content %}
+<div class="slide-up">
+
+  {# Breadcrumb #}
+  <div class="mono text-xs text-gray-400 flex items-center gap-1.5 mb-5 flex-wrap">
+    <i data-lucide="terminal" class="w-3 h-3 flex-shrink-0"></i>
+    <a href="/" class="hover:text-accent transition-colors">home</a>
+    <span class="text-accent">/</span>
+    <a href="/exams" class="hover:text-accent transition-colors">exams</a>
+    <span class="text-accent">/</span>
+    <span class="text-gray-600">{{ vendor.name }}</span>
+  </div>
+
+  {# ── Vendor header ── #}
+  <div class="panel p-6 mb-4">
+    <div class="flex items-start gap-4">
+      <div class="w-12 h-12 rounded-xl bg-accent-light border border-accent flex items-center justify-center flex-shrink-0">
+        <i data-lucide="building-2" class="w-6 h-6 text-accent"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="mono text-[11px] text-gray-400 mb-1">certification vendor</div>
+        <h1 class="text-xl font-bold text-gray-900 tracking-tight leading-snug mb-1">
+          Free {{ vendor.name }} Certification Practice Questions
+        </h1>
+        {% if vendor.description %}
+        <p class="text-sm text-gray-500 leading-relaxed">{{ vendor.description }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {# ── Stats strip ── #}
+  <div class="grid grid-cols-3 gap-3 mb-6">
+    <div class="panel p-3 flex flex-col items-center text-center">
+      <div class="w-8 h-8 rounded-lg bg-accent-light flex items-center justify-center mb-1.5">
+        <i data-lucide="file-text" class="w-4 h-4 text-accent"></i>
+      </div>
+      <span class="font-semibold text-gray-900 text-lg leading-none">{{ exams_with_counts | length }}</span>
+      <span class="mono text-[10px] text-gray-400 mt-0.5">exam{{ 's' if exams_with_counts | length != 1 }}</span>
+    </div>
+    <div class="panel p-3 flex flex-col items-center text-center">
+      <div class="w-8 h-8 rounded-lg bg-accent-light flex items-center justify-center mb-1.5">
+        <i data-lucide="circle-help" class="w-4 h-4 text-accent"></i>
+      </div>
+      <span class="font-semibold text-gray-900 text-lg leading-none">{{ total_questions }}</span>
+      <span class="mono text-[10px] text-gray-400 mt-0.5">questions</span>
+    </div>
+    <div class="panel p-3 flex flex-col items-center text-center">
+      <div class="w-8 h-8 rounded-lg bg-accent-light flex items-center justify-center mb-1.5">
+        <i data-lucide="badge-check" class="w-4 h-4 text-accent"></i>
+      </div>
+      <span class="font-semibold text-gray-900 text-lg leading-none">100%</span>
+      <span class="mono text-[10px] text-gray-400 mt-0.5">free, no sign-up</span>
+    </div>
+  </div>
+
+  {# ── Exam list ── #}
+  <div class="mb-3 flex items-center justify-between">
+    <h2 class="font-semibold text-gray-900 text-base">
+      Free {{ vendor.name }} Practice Exams
+    </h2>
+    <span class="mono text-[11px] text-gray-400">{{ exams_with_counts | length }} available</span>
+  </div>
+
+  {% if not exams_with_counts %}
+  <div class="panel px-4 py-8 flex flex-col items-center text-center">
+    <i data-lucide="inbox" class="w-8 h-8 text-gray-300 mb-2"></i>
+    <p class="text-sm text-gray-500">No practice exams available yet for {{ vendor.name }}.</p>
+  </div>
+  {% else %}
+  <div class="panel flex flex-col">
+    <ul class="divide-y divide-border">
+      {% for row in exams_with_counts %}
+      {% set exam = row.exam %}
+      {% set count = row.question_count %}
+      <li>
+        <a href="/exams/{{ exam.slug }}"
+           class="flex items-center gap-3 px-5 py-3 hover:bg-accent-light group transition-colors duration-100">
+
+          {# Exam code badge #}
+          {% if exam.exam_code %}
+          <span class="mono text-[10px] font-medium text-accent flex-shrink-0 w-20 truncate">
+            {{ exam.exam_code }}
+          </span>
+          {% endif %}
+
+          {# Exam name #}
+          <span class="flex-1 text-sm text-accent group-hover:underline leading-snug min-w-0">
+            {{ exam.name }}
+          </span>
+
+          {# Right side: featured + question count #}
+          <div class="flex items-center gap-2 flex-shrink-0">
+            {% if exam.is_featured %}
+            <span class="mono text-[9px] text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded leading-none">
+              ★ featured
+            </span>
+            {% endif %}
+            {% if count > 0 %}
+            <span class="mono text-[10px] text-gray-400 bg-base border border-border px-2 py-0.5 rounded">
+              {{ count }} Q{{ 's' if count != 1 }}
+            </span>
+            {% endif %}
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-gray-300 group-hover:text-accent group-hover:translate-x-0.5 transition-all"></i>
+          </div>
+
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

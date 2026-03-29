@@ -1,0 +1,63 @@
+/* ── Global base ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  background-color: #f3f4f6;
+  /* Pattern grid: #e5e7eb lines every 20px at 30% opacity */
+  background-image:
+    linear-gradient(rgba(229,231,235,0.30) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(229,231,235,0.30) 1px, transparent 1px);
+  background-size: 20px 20px;
+  min-height: 100vh;
+}
+
+/*
+  .bg-base is defined here as a plain CSS class rather than a Tailwind custom
+  color. Previously `base` was in the Tailwind colors config, which caused
+  Tailwind CDN to generate a `.text-base { color: #f3f4f6 }` rule that clashed
+  with the built-in `.text-base` font-size utility and silently overrode
+  `text-gray-900` (and similar) on any element that also had `text-base` for
+  its font size. Moving the definition here removes the collision entirely.
+*/
+.bg-base { background-color: #f3f4f6; }
+
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar       { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #f3f4f6; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 5px; border: 2px solid #f3f4f6; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+* { scrollbar-width: thin; scrollbar-color: #d1d5db #f3f4f6; }
+
+/* ── Accent focus ring ── */
+.focus-accent:focus-visible {
+  outline: 2px solid #06B6D4;
+  outline-offset: 2px;
+}
+
+/* ── Nav link active state ── */
+.nav-link.active,
+.nav-link:hover {
+  color: #06B6D4 !important;
+  background-color: #cffafe !important;
+  outline: none;
+}
+
+/* ── Slide-up entrance ── */
+.slide-up {
+  animation: slideUp 0.4s ease-in-out;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* ── Mono label helper ── */
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+/* ── Devtools-style panel border ── */
+.panel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px 0 rgba(0,0,0,0.10);
+  border-radius: 8px;
+}

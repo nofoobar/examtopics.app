@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy — {{ settings.APP_NAME }}{% endblock %}
+{% block meta_description %}Privacy Policy for {{ settings.APP_NAME }}. Learn how we handle your data.{% endblock %}
+
+{% block content %}
+<div class="slide-up max-w-2xl mx-auto">
+
+  <div class="mono text-xs text-gray-400 flex items-center gap-1.5 mb-5">
+    <i data-lucide="terminal" class="w-3 h-3"></i>
+    <a href="/" class="hover:text-accent transition-colors">home</a>
+    <span class="text-accent">/</span>
+    <span>privacy</span>
+  </div>
+
+  <div class="panel p-8">
+    <div class="w-12 h-12 rounded-xl bg-accent-light border border-accent flex items-center justify-center mb-5">
+      <i data-lucide="shield" class="w-6 h-6 text-accent"></i>
+    </div>
+    <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight mb-1">Privacy Policy</h1>
+    <p class="mono text-[11px] text-gray-400 mb-8">Last updated: {{ month_and_year }}</p>
+
+    <div class="space-y-8 text-sm text-gray-600 leading-relaxed">
+
+      <section>
+        <h2 class="font-bold text-gray-900 text-sm mb-2">1. Overview</h2>
+        <p>{{ settings.APP_NAME }} ("we", "us", "our") operates {{ settings.APP_URL }}. This policy explains what information
+        we collect when you use our platform and how we use it. We keep things minimal — we don't require an account,
+        and we don't sell your data.</p>
+      </section>
+
+      <section>
+        <h2 class="font-bold text-gray-900 text-sm mb-2">2. Information we collect</h2>
+        <p class="mb-3">We collect limited information automatically when you visit:</p>
+        <ul class="space-y-2 pl-4">
+          <li class="flex items-start gap-2"><span class="text-accent mt-1">·</span><span><strong class="text-gray-800">Search queries</strong> — when you use the search feature, we log the search term and result count to improve relevance.</span></li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-1">·</span><span><strong class="text-gray-800">IP address</strong> — stored alongside search logs for spam prevention. Not linked to any personal profile.</span></li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-1">·</span><span><strong class="text-gray-800">Exam request form</strong> — if you submit a request for a new exam, we store your email address and exam name so we can follow up.</span></li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-1">·</span><span><strong class="text-gray-800">Standard server logs</strong> — our servers automatically log request metadata (URL, timestamp, browser type). Logs are retained for up to 30 days.</span></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="font-bold text-gray-900 text-sm mb-2">3. Cookies</h2>
+        <p>We use only essential session cookies necessary for the website to function. We do not use tracking cookies,
+        advertising cookies, or third-party analytics cookies. No cookie consent banner is required because we only
+        set strictly necessary cookies.</p>
+      </section>
+
+      <section>
+        <h2 class="font-bold text-gray-900 text-sm mb-2">4. How we use your information</h2>
+        <ul class="space-y-2 pl-4">
+          <li class="flex items-start gap-2"><span class="text-accent mt-1">·</span><span>To improve search results and exam coverage based on what users are looking for.</span></li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-1">·</span><span>To respond to exam requests you submit via the request form.</span></li>
+          <li class="flex items-start gap-2"><span class="text-accent mt-1">·</span><span>To monitor and protect the platform from abuse.</span></li>
+        </ul>
+        <p class="mt-3">We do not use your information for advertising, profiling, or any form of automated decision-making.</p>
+      </section>
+
+      <section>
+        <h2 class="font-bold text-gray-900 text-sm mb-2">5. Third parties</h2>
+        <p>We do not sell, rent, or share your personal data with third parties except as necessary to operate the
+        service (e.g. our hosting provider). Any third-party service we use is bound by data processing agreements
+        and processes data only on our behalf.</p>
+      </section>
+
+      <section>
+        <h2 class="font-bold text-gray-900 text-sm mb-2">6. Data retention</h2>
+        <p>Search logs are retained for up to 90 days. Exam request data is retained until the request is fulfilled
+        or you ask us to delete it. You can request deletion of any data we hold about you at any time by
+        contacting us at <a href="mailto:privacy@{{ settings.PLATFORM }}" class="text-accent hover:underline">privacy@{{ settings.PLATFORM }}</a>.</p>
+      </section>
+
+      <section>
+        <h2 class="font-bold text-gray-900 text-sm mb-2">7. Your rights</h2>
+        <p>Depending on where you are located, you may have rights under applicable data protection law including
+        the right to access, correct, or delete your personal data. To exercise any of these rights, contact us
+        at <a href="mailto:privacy@{{ settings.PLATFORM }}" class="text-accent hover:underline">privacy@{{ settings.PLATFORM }}</a>.</p>
+      </section>
+
+      <section>
+        <h2 class="font-bold text-gray-900 text-sm mb-2">8. Changes to this policy</h2>
+        <p>We may update this policy from time to time. The date at the top of this page reflects the most recent
+        revision. Continued use of the platform after any changes constitutes acceptance of the updated policy.</p>
+      </section>
+
+      <section>
+        <h2 class="font-bold text-gray-900 text-sm mb-2">9. Contact</h2>
+        <p>For any privacy-related questions, email us at
+        <a href="mailto:privacy@{{ settings.PLATFORM }}" class="text-accent hover:underline">privacy@{{ settings.PLATFORM }}</a>.</p>
+      </section>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
