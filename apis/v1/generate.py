@@ -434,8 +434,8 @@ async def generate_exam(
     if not vendor:
         return render_error("Selected vendor not found.")
 
-    num_tests = max(1, min(5, num_tests))
-    questions_per_test = max(3, min(30, questions_per_test))
+    num_tests = max(1, min(10, num_tests))
+    questions_per_test = max(2, min(300, questions_per_test))
     ai_percentage = max(0, min(100, ai_percentage))
 
     if question_source not in ("ai", "examtopics", "mix"):
