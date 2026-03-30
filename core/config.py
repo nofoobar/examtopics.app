@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "change-me-in-production"
     ADMIN_USERNAME: str = "admin"
     ADMIN_PASSWORD: str = "admin"
+
+    DOCS_USERNAME: str
+    DOCS_PASSWORD: str
+    
     OPENROUTER_API_KEY: str = ""
     LANGFUSE_PUBLIC_KEY: str = ""
     LANGFUSE_SECRET_KEY: str = ""
