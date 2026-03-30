@@ -17,6 +17,8 @@ from utils.ai_pipeline import (
     generate_single_question,
     generate_question_from_examtopics,
 )
+from core.config import settings
+
 
 router = APIRouter(tags=["generate"])
 
@@ -35,7 +37,7 @@ def _et_answer_to_int(letter: str) -> int:
 
 
 async def _fetch_examtopics_question(exam_id: int) -> dict | None:
-    base_url = os.getenv("BACKEND_ALGOHOLIC_URL", "http://127.0.0.1:8000")
+    base_url = settings.BACKEND_ALGOHOLIC_URL
     url = f"{base_url}/api/v1/examtopics/get-a-random-question-from-examtopics-exam/{exam_id}"
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
@@ -162,7 +164,7 @@ def _run_generation(job_id: int) -> None:
                 _tick()
 
             if n_et_aq > 0:
-                base_url_aq = os.getenv("BACKEND_ALGOHOLIC_URL", "http://127.0.0.1:8000")
+                base_url_aq = settings.BACKEND_ALGOHOLIC_URL
                 for i in range(n_et_aq):
                     et_url_aq = (
                         f"{base_url_aq}/api/v1/examtopics/"
@@ -315,7 +317,7 @@ def _run_generation(job_id: int) -> None:
 
             # ExamTopics questions - committed immediately so they appear in the frontend as they are generated
             if n_et_qs > 0:
-                base_url = os.getenv("BACKEND_ALGOHOLIC_URL", "http://127.0.0.1:8000")
+                base_url = settings.BACKEND_ALGOHOLIC_URL
                 for i in range(n_et_qs):
                     et_url = (
                         f"{base_url}/api/v1/examtopics/"

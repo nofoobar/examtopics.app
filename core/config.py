@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "change-me-in-production"
     ADMIN_USERNAME: str = "admin"
     ADMIN_PASSWORD: str = "admin"
+    BACKEND_ALGOHOLIC_URL: str
 
     DOCS_USERNAME: str
     DOCS_PASSWORD: str
