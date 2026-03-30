@@ -7,6 +7,7 @@
 
 {% block og_title %}Free {{ exam.exam_code or exam.name }} Practice Questions - {{ test.name }} - {{ settings.APP_NAME }}{% endblock %}
 {% block og_url %}{{ settings.APP_URL }}/exams/{{ exam.slug }}/{{ test.slug }}{% endblock %}
+{% block canonical %}<link rel="canonical" href="{{ settings.APP_URL }}/exams/{{ exam.slug }}/{{ test.slug }}" />{% endblock %}
 
 {# ── Ad card macro ── #}
 {% macro ad_card(ad) %}

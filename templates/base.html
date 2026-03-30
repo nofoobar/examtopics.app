@@ -66,6 +66,9 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <link rel="stylesheet" href="{{ url_for('static', path='css/base.css') }}">
 
+  <!-- Canonical URL -->
+  {% block canonical %}<link rel="canonical" href="{{ settings.APP_URL }}{{ request.url.path }}" />{% endblock %}
+
   {% block extra_head %}{% endblock %}
 </head>
 

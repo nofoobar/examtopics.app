@@ -15,7 +15,9 @@ from db.admin.generation_job_admin import GenerationJobAdmin
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.openapi.docs import get_swagger_ui_html
 
+
 security = HTTPBasic()
+
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -54,9 +56,11 @@ def verify_docs_credentials(credentials: HTTPBasicCredentials = Depends(security
             headers={"WWW-Authenticate": "Basic"},
         )
 
+
 @app.get("/api/openapi.json", include_in_schema=False)
 async def openapi(credentials: HTTPBasicCredentials = Depends(verify_docs_credentials)):
     return app.openapi()
+
 
 @app.get("/api/docs", include_in_schema=False)
 async def docs(credentials: HTTPBasicCredentials = Depends(verify_docs_credentials)):
