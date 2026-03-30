@@ -228,7 +228,7 @@ VENDORS: list[dict] = [
         "logo_url":    None,
         "is_active":   True,
         "is_popular":  False,
-    }    "name":        "SAP",
+    }
 ]
 
 
