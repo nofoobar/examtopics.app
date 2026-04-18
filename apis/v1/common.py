@@ -4,6 +4,8 @@ from sqlmodel import Session, select, func
 from apis.deps import get_db
 from db.models.exam import Vendor, Exam
 from utils.templates import templates
+from core.config import settings
+
 
 router = APIRouter(prefix="", tags=["common"])
 
@@ -29,7 +31,6 @@ async def index(request: Request, session: Session = Depends(get_db)):
         request,
         "common/homepage.html",
         {
-            "title": "Home",
             "vendors_with_exams": vendors_with_exams,
             "total_exams": total_exams,
         },

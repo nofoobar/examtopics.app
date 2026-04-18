@@ -1,4 +1,5 @@
 import os
+import csv
 import re
 from typing import Optional
 
@@ -34,18 +35,6 @@ def _slugify(text: str) -> str:
 
 def _et_answer_to_int(letter: str) -> int:
     return {"A": 1, "B": 2, "C": 3, "D": 4, "E": 5}.get(letter.upper().strip(), 1)
-
-
-async def _fetch_examtopics_question(exam_id: int) -> dict | None:
-    base_url = settings.BACKEND_ALGOHOLIC_URL
-    url = f"{base_url}/api/v1/examtopics/get-a-random-question-from-examtopics-exam/{exam_id}"
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.get(url)
-            resp.raise_for_status()
-            return resp.json()
-    except Exception:
-        return None
 
 
 # ── background task ───────────────────────────────────────────────────────────
@@ -493,6 +482,9 @@ async def generate_exam(
     return RedirectResponse(url=f"/generate/jobs/{job.id}", status_code=303)
 
 
+
+
+
 # ── Add-questions form & API ─────────────────────────────────────────────────
 
 @router.get("/api/v1/exams/{exam_id}/tests-list")
@@ -674,3 +666,214 @@ def job_status_api(job_id: int, session: Session = Depends(get_db)):
         "result_exam_id":   job.result_exam_id,
         "result_url":       f"/exams/{job.result_exam_id}" if job.result_exam_id else None,
     }
+
+
+@router.get("/generate/examtopics-exams/")
+def generate_examtopics_exams(background_tasks: BackgroundTasks):
+    background_tasks.add_task(_run_csv_generation)
+    return {"message": "CSV generation started in background. Watch uvicorn logs for progress."}
+
+
+def _run_csv_generation() -> None:
+    import logging
+    log = logging.getLogger("csv_generation")
+    logging.basicConfig(level=logging.INFO, force=True)
+
+    with open("examtopics_exam_list.csv", "r") as f:
+        rows = list(csv.reader(f))[1:]  # skip header
+
+    total = len(rows)
+    log.info(f"[CSV] Starting: {total} exams to process")
+
+    done = skipped = failed = 0
+
+    for idx, row in enumerate(rows, start=1):
+        examtopics_exam_id   = int(row[0])
+        examtopics_exam_name = row[1]
+        vendor_slug          = row[2]
+
+        log.info(f"[CSV] [{idx}/{total}] Starting: {examtopics_exam_name} (et_id={examtopics_exam_id}, vendor={vendor_slug})")
+
+        result = generate_exams_from_csv_data(
+            examtopics_exam_id=examtopics_exam_id,
+            examtopics_exam_name=examtopics_exam_name,
+            vendor_slug=vendor_slug,
+        )
+
+        status = result.get("status")
+        if status == "done":
+            done += 1
+            partial = f" | partial_errors={len(result['errors'])}" if result.get("errors") else ""
+            log.info(
+                f"[CSV] [{idx}/{total}] OK: {examtopics_exam_name}"
+                f" | exam_id={result.get('exam_id')}"
+                f" | questions={result.get('questions_added')}"
+                f"{partial}"
+            )
+        elif status == "skipped":
+            skipped += 1
+            log.info(f"[CSV] [{idx}/{total}] SKIPPED: {examtopics_exam_name} | {result.get('error')}")
+        else:
+            failed += 1
+            log.error(f"[CSV] [{idx}/{total}] FAILED: {examtopics_exam_name} | {result.get('error')}")
+
+    log.info(f"[CSV] Finished. done={done} skipped={skipped} failed={failed} total={total}")
+
+
+def generate_exams_from_csv_data(
+    examtopics_exam_id: int,
+    examtopics_exam_name: str,
+    vendor_slug: str,
+    questions_per_test: int = 120,
+    llm_model: str = "gemini-cheap",
+) -> dict:
+    """
+    Generate a full exam (metadata + 1 test + N questions) from ExamTopics source.
+    All questions are fetched from the ExamTopics API and enhanced via LLM.
+    Vendor is resolved by slug; falls back to 'others' if not found.
+    Returns a result dict with status, exam_id, and any error message.
+    """
+    with Session(engine) as session:
+
+        # Vendor lookup with 'others' fallback
+        vendor = session.exec(
+            select(Vendor).where(Vendor.slug == vendor_slug)
+        ).first()
+        if not vendor:
+            vendor = session.exec(
+                select(Vendor).where(Vendor.slug == "others")
+            ).first()
+        if not vendor:
+            return {
+                "status": "failed",
+                "error": f"Vendor '{vendor_slug}' not found and 'others' fallback is missing. Run seed_vendors.py first.",
+            }
+
+        # Slug collision check — skip instead of crash
+        slug_base = _slugify(examtopics_exam_name)
+        if session.exec(select(Exam).where(Exam.slug == slug_base)).first():
+            return {"status": "skipped", "error": f"Exam with slug '{slug_base}' already exists."}
+
+        # Exam metadata via LLM
+        try:
+            meta = generate_exam_metadata(examtopics_exam_name, "", llm_model)
+        except Exception as e:
+            return {"status": "failed", "error": f"Metadata generation failed: {e}"}
+
+        exam = Exam(
+            vendor_id=vendor.id,
+            name=examtopics_exam_name,
+            exam_code=None,
+            slug=slug_base,
+            short_description=meta.get("short_description"),
+            description=meta.get("description"),
+            is_active=True,
+        )
+        session.add(exam)
+        session.flush()
+
+        # Test record
+        test = Test(
+            exam_id=exam.id,
+            name="Practice Test 1",
+            slug=f"{slug_base}-pt1",
+            is_active=True,
+        )
+        session.add(test)
+        session.flush()
+
+        # Fetch + enhance questions from ExamTopics
+        base_url = settings.BACKEND_ALGOHOLIC_URL
+        et_url = (
+            f"{base_url}/api/v1/examtopics/"
+            f"get-a-random-question-from-examtopics-exam/{examtopics_exam_id}"
+        )
+
+        questions_added = 0
+        errors = []
+
+        for i in range(questions_per_test):
+            # Fetch raw question
+            try:
+                with httpx.Client(timeout=15.0) as client:
+                    resp = client.get(et_url)
+                    resp.raise_for_status()
+                    raw_et = resp.json()
+            except Exception as e:
+                errors.append(f"Q{i+1} fetch failed: {e}")
+                # If the very first question fails it is likely a connectivity
+                # or config issue — abort early rather than hammering the API
+                # N times and leaving an empty exam in the DB.
+                if i == 0:
+                    session.delete(test)
+                    session.delete(exam)
+                    session.commit()
+                    return {
+                        "status": "failed",
+                        "error": f"Aborting — first question fetch failed: {e}. Check BACKEND_ALGOHOLIC_URL and SSL config.",
+                        "errors": errors,
+                    }
+                continue
+
+            # Enhance with LLM; fallback to raw data on failure
+            try:
+                enhanced = generate_question_from_examtopics(
+                    raw_et, llm_model, question_index=i
+                )
+            except Exception:
+                discussions = raw_et.get("top_3_discussions", [])
+                enhanced = {
+                    "question": raw_et.get("question", ""),
+                    "question_type": "multiple-choice",
+                    "options": {
+                        str(j + 1): c["choice_text"]
+                        for j, c in enumerate(raw_et.get("choices", []))
+                    },
+                    "correct_options": [_et_answer_to_int(raw_et.get("answer", "A"))],
+                    "overall_explanation": (
+                        discussions[0]["content"] if discussions
+                        else raw_et.get("answer_description", "")
+                    ),
+                    "domain": None,
+                }
+
+            raw_type = enhanced.get("question_type", "multiple-choice")
+            session.add(Question(
+                test_id=test.id,
+                question=enhanced.get("question", ""),
+                question_type=(
+                    QuestionType.multi_select
+                    if raw_type == "multi-select"
+                    else QuestionType.multiple_choice
+                ),
+                options=enhanced.get("options", {}),
+                correct_options=enhanced.get("correct_options", [1]),
+                explanations={},
+                overall_explanation=enhanced.get("overall_explanation"),
+                domain=enhanced.get("domain"),
+                llm_model=f"et+{llm_model}",
+                is_active=True,
+            ))
+            session.commit()
+            questions_added += 1
+
+        # If we somehow finished the loop with zero questions (partial failures)
+        # clean up the empty exam so the slug is free for a retry.
+        if questions_added == 0:
+            session.delete(test)
+            session.delete(exam)
+            session.commit()
+            return {
+                "status": "failed",
+                "error": "No questions were added. Exam record cleaned up so you can retry.",
+                "errors": errors,
+            }
+
+        return {
+            "status": "done",
+            "exam_id": exam.id,
+            "exam_slug": slug_base,
+            "vendor_slug": vendor.slug,
+            "questions_added": questions_added,
+            "errors": errors,
+        }

@@ -11,7 +11,7 @@ from utils.templates import templates
 
 router = APIRouter(tags=["exams"])
 
-QUESTIONS_PER_PAGE = 5
+QUESTIONS_PER_PAGE = 10
 
 
 # ── JSON API ──────────────────────────────────────────────────────────────────

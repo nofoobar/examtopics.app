@@ -7,6 +7,7 @@ openrouter.py — no manual trace/span management needed here.
 """
 import json
 import re
+import time
 from utils.openrouter import openrouter_client
 
 
@@ -28,6 +29,25 @@ def _parse_correct_answers(raw: str | int | list) -> list[int]:
     return [int(p) for p in parts if p.isdigit()]
 
 
+def _with_retry(fn, retries: int = 3, delay: float = 5.0):
+    """
+    Call fn(), retrying up to `retries` times on any exception.
+    Waits `delay` seconds between attempts (doubles each retry).
+    Raises the last exception if all attempts fail.
+    """
+    last_exc = None
+    wait = delay
+    for attempt in range(1, retries + 1):
+        try:
+            return fn()
+        except Exception as e:
+            last_exc = e
+            if attempt < retries:
+                time.sleep(wait)
+                wait *= 2
+    raise last_exc
+
+
 # exam metadata
 
 def generate_exam_metadata(exam_name: str, exam_code: str, model_key: str) -> dict:
@@ -40,14 +60,17 @@ def generate_exam_metadata(exam_name: str, exam_code: str, model_key: str) -> di
         "description": "2-3 sentence paragraph about the exam, who it is for, and why it matters"
       }}"""
 
-    raw = openrouter_client.completion(
-        model_key=model_key,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.5,
-        generation_name="exam_metadata",
-        metadata={"exam_name": exam_name, "exam_code": exam_code},
-    )
-    return _parse_json(raw)
+    def _call():
+        raw = openrouter_client.completion(
+            model_key=model_key,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.5,
+            generation_name="exam_metadata",
+            metadata={"exam_name": exam_name, "exam_code": exam_code},
+        )
+        return _parse_json(raw)
+
+    return _with_retry(_call, retries=3, delay=5.0)
 
 
 # questions (AI-only, one per LLM call for richer output)
@@ -199,27 +222,26 @@ def generate_question_from_examtopics(
     prompt = _build_examtopics_prompt(et_data)
     name = f"et_question_{question_index}" if question_index is not None else "et_question"
 
-    raw = openrouter_client.completion(
-        model_key=model_key,
-        messages=[
-            {"role": "system", "content": "Return only valid JSON, no markdown, no extra text."},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.3,
-        generation_name=name,
-        metadata={
-            "exam_name": et_data.get("exam_name"),
-            "source": "examtopics",
-            "question_index": question_index,
-        },
-    )
+    def _call():
+        raw = openrouter_client.completion(
+            model_key=model_key,
+            messages=[
+                {"role": "system", "content": "Return only valid JSON, no markdown, no extra text."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.3,
+            generation_name=name,
+            metadata={
+                "exam_name": et_data.get("exam_name"),
+                "source": "examtopics",
+                "question_index": question_index,
+            },
+        )
+        data = _parse_json(raw)
+        if "correct_options" in data:
+            data["correct_options"] = _parse_correct_answers(data["correct_options"])
+        if "options" in data:
+            data["options"] = {str(k): v for k, v in data["options"].items()}
+        return data
 
-    data = _parse_json(raw)
-
-    if "correct_options" in data:
-        data["correct_options"] = _parse_correct_answers(data["correct_options"])
-
-    if "options" in data:
-        data["options"] = {str(k): v for k, v in data["options"].items()}
-
-    return data
+    return _with_retry(_call, retries=3, delay=5.0)

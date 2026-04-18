@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}About — {{ settings.APP_NAME }}{% endblock %}
+{% block title %}About - {{ settings.APP_NAME }}{% endblock %}
 {% block meta_description %}Learn about {{ settings.APP_NAME }}, the free IT certification exam prep platform.{% endblock %}
 
 {% block content %}
@@ -21,7 +21,7 @@
     <div class="space-y-4 text-sm text-gray-600 leading-relaxed">
       <p>
         {{ settings.APP_NAME }} is a free, no-registration practice platform for IT certification candidates.
-        We offer thousands of practice questions across AWS, Azure, Google Cloud, CompTIA, and other major vendors —
+        We offer thousands of practice questions across AWS, Azure, Google Cloud, CompTIA, and other major vendors,
         all available instantly with no account required.
       </p>
       <p>
@@ -44,7 +44,7 @@
       {% for item in [
         ("Free practice questions",    "No paywall, no account needed. Just open a test and start studying."),
         ("Detailed explanations",      "Every question includes a clear explanation of the correct answer and why the distractors are wrong."),
-        ("Multiple vendors covered",   "AWS, Azure, GCP, CompTIA, Cisco, and more — all in one place."),
+        ("Multiple vendors covered",   "AWS, Azure, GCP, CompTIA, Cisco, and more. All in one place."),
         ("AI-assisted content",        "Questions are generated and reviewed with the help of AI to ensure accuracy and coverage."),
         ("Regularly updated",          "We track vendor announcements and update questions whenever exams change."),
       ] %}
